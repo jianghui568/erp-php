@@ -15,7 +15,7 @@ use Dcat\Admin\Widgets\Box;
 use Dcat\Admin\Widgets\Form as WidgetForm;
 
 
-class GoodsCategoryController extends AdminController
+class GoodsCategoryControllerbak extends AdminController
 {
     protected $title='商品属性';
     /**

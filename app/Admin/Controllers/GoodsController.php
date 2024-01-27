@@ -10,6 +10,7 @@ use Dcat\Admin\Grid;
 use Dcat\Admin\Form;
 
 use Dcat\Admin\Http\Controllers\AdminController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 
@@ -143,5 +144,15 @@ class GoodsController extends AdminController
                 return $form->response()->success('删除成功');
             });
         });
+    }
+
+    public function skuList(Request $request) {
+        $goodsId = $request->input('goods_id');
+        if (!$goodsId) {
+            return [];
+        }
+        $goodsSku = GoodsSku::where('goods_id', $goodsId)->pluck('sku');
+
+        return $goodsSku;
     }
 }

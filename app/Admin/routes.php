@@ -14,9 +14,12 @@ Route::group([
 ], function (Router $router) {
 
     $router->get('/', 'HomeController@index');
-    $router->resource('/goodsAttribute', Controllers\GoodsSkuController::class);
     $router->resource('/goodsCategory', Controllers\GoodsCategoryController::class);
+
+    $router->get('/goods/skuList', [Controllers\GoodsController::class, 'skuList']);
     $router->resource('/goods', Controllers\GoodsController::class);
+
     $router->resource('/vendor', Controllers\VendorController::class);
+    $router->resource('/order', Controllers\OrderController::class);
 
 });
