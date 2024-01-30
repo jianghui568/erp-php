@@ -10,6 +10,7 @@ use Dcat\Admin\Grid;
 use Dcat\Admin\Form;
 
 use Dcat\Admin\Http\Controllers\AdminController;
+use Dcat\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
@@ -25,13 +26,17 @@ class GoodsController extends AdminController
     protected function grid()
     {
         return Grid::make(Goods::class, function (Grid $grid) {
-            $grid->model()->with(['category', 'vendor'])->orderBy('id', 'desc');
+            $grid->model()->with(['category', 'vendor', 'sku'])->orderBy('id', 'desc');
             $grid->column('id','ID');
             $grid->column('category.name','分类');
             $grid->column('vendor.name','供货商');
             $grid->column('name','商品名')->expand(function($model) {
-
                 return view('admin.goods.goods_sku', ['model' => $this]);
+            });
+            $grid->column('SKU总库存','SKU总库存')->display(function() {
+                $count = $this->sku->sum('stock');
+                $goodsId= $this->id;
+                return "<a href='/admin/goods/skuStockList?goods_id={$goodsId}'>{$count}</a>";
             });
             $grid->column('weight','重量kg');
             $grid->column('mfrs','制造商');
@@ -127,11 +132,11 @@ class GoodsController extends AdminController
                     }
                     $sku->sku_meta = $item;
                     $sku->goods_id = $form->getKey();
-                    $sku->stock = Arr::get($item, 'stock', 0);
-                    $sku->pic = Arr::get($item, 'pic', '');
-                    $sku->unit = Arr::get($item, 'unit', '');
-                    $sku->purchase_price = Arr::get($item, 'price', 0);
-                    $sku->retail_price = Arr::get($item, 'retail', 0);
+                    $sku->stock =intval( Arr::get($item, 'stock', 0));
+                    $sku->pic = strval(Arr::get($item, 'pic', ''));
+                    $sku->unit = strval(Arr::get($item, 'unit', ''));
+                    $sku->purchase_price = floatval(Arr::get($item, 'price', 0));
+                    $sku->retail_price = floatval(Arr::get($item, 'retail', 0));
                     $sku->sku = $skuKey;
                     $sku->save();
                 }
@@ -139,7 +144,8 @@ class GoodsController extends AdminController
 
             $form->deleted(function (Form $form, $result) {
 
-                GoodsSku::where('goods_id', $form->getKey())->delete();
+                $ids = explode(',', $form->getKey());
+                GoodsSku::whereIn('goods_id',$ids )->delete();
                 // 返回删除成功提醒，此处跳转参数无效
                 return $form->response()->success('删除成功');
             });
@@ -154,5 +160,32 @@ class GoodsController extends AdminController
         $goodsSku = GoodsSku::where('goods_id', $goodsId)->pluck('sku');
 
         return $goodsSku;
+    }
+
+    public function skuStockList(Content $content) {
+        $grid = Grid::make(GoodsSku::class, function (Grid $grid) {
+            $grid->model()->with('goods')
+                ->orderBy('stock','desc')
+                ->orderBy('goods_id', 'asc');
+            $grid->column('goods.name','商品');
+            $grid->column('sku','SKU');
+            $grid->column('stock','库存');
+            $grid->filter(function($filter){
+                $filter->equal('goods_id','商品')->select(Goods::pluck('name', 'id'));
+                $filter->like('sku','SKU');
+                $filter->lt('stock','库存数小于');
+            });
+            $grid->quickSearch(['sku', 'goods.name'])->placeholder('搜索商品、SKU');
+
+            $grid->disableCreateButton();
+            $grid->disableViewButton();
+             $grid->disableEditButton();
+            $grid->disableDeleteButton();
+            $grid->scrollbarX();//数据展开
+             $grid->disableActions();
+             $grid->disableRowSelector();
+        });
+        return $content->title('商品SKU库存')
+            ->body($grid);
     }
 }

@@ -7,7 +7,7 @@ use App\Enum\OrderState;
 use App\Exceptions\VerifyException;
 use App\Models\GoodsSku;
 use App\Models\Order;
-use App\Models\OrderSkuLog;
+use App\Models\SkuLog;
 use Dcat\Admin\Contracts\LazyRenderable;
 use Dcat\Admin\Traits\LazyWidget;
 use Dcat\Admin\Widgets\Form;
@@ -63,9 +63,9 @@ class OrderForm extends Form implements LazyRenderable
                             'stock' => DB::raw("stock-{$orderSku->num}")
                         ]);
                     if ($effect == 0) {
-                        VerifyException::throwException('商品【' . $order->goods->name . '】规格: 【' . $orderSku->sku . '】扣库存(' . $goodsSku->stock . ')失败, 需要扣除:' . $orderSku->num);
+                        VerifyException::throwException('商品【' . $order->goods->name . '】规格: 【' . $orderSku->sku . '】扣库存失败。现有' . $goodsSku->stock . ', 需要扣除:' . $orderSku->num);
                     }
-                    OrderSkuLog::addLog($adminId, $order->id,$order->goods_id,$goodsSku->sku,$orderSku->num);
+                    SkuLog::reduceLog($adminId, $orderSku,$goodsSkuBegin);
                 }
 
                 $order->track_sn = $track_sn;

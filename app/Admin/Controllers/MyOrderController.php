@@ -22,11 +22,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 
-class OrderController extends AdminController
+class MyOrderController extends AdminController
 {
     use AdminInfoTrait;
 
-    protected $title = '订单信息';
+    protected $title = '我的订单';
 
     /**
      * Make a grid builder.
@@ -36,9 +36,10 @@ class OrderController extends AdminController
     protected function grid()
     {
         return Grid::make(Order::class, function (Grid $grid) {
-            $grid->model()->with(['admin', 'goods', 'skus'])->orderBy('id', 'desc');
+            $grid->model()->with(['admin', 'goods', 'skus'])
+                ->where('admin_id', $this->getAdminId())
+                ->orderBy('id', 'desc');
             $grid->column('id', 'ID');
-            $grid->column('admin.name', '租户');
             $grid->column('customer_order_sn', '订单号')->modal('修改订单状态', function ($modal) {
                 // 标题
                 $modal->title('设置平台代理人');
@@ -73,21 +74,18 @@ class OrderController extends AdminController
 
             $grid->column('pay_at', '支付时间');
             $grid->column('return_at', '退货时间');
-
+            $grid->column('admin.name', '租户');
 //            $grid->column('SKU','SKU')->link(fn() => admin_route('posts.edit',[$this->id]),'self');
             $grid->filter(function ($filter) {
-                $filter->equal('admin_id', '租户')->select(AdminUser::pluck('name', 'id'));
                 $filter->equal('state', '订单状态')->select(OrderState::asArray());
                 $filter->like('customer_order_sn', '订单号');
                 $filter->like('track_sn', '物流单号');
                 $filter->like('customer_name', '用户');
                 $filter->like('customer_phone', '手机号');
-
             });
             $grid->quickSearch(['customer_name','customer_phone','customer_order_sn','track_sn'])->placeholder('搜索用户、手机号、订单号、物流单号');
 
-
-            $grid->tools(new GoodsSelect());
+            $grid->tools((new GoodsSelect())->setUriPrefix('myOrder'));
             $grid->disableCreateButton();
             $grid->disableViewButton();
 //             $grid->disableEditButton();
@@ -134,7 +132,7 @@ class OrderController extends AdminController
 
                 $form->select('sku', 'SKU')
                     ->options(GoodsSku::where('goods_id', $goodsId)->pluck('sku', 'sku'));
-                $form->number('num', '数量');
+                $form->number('num', '数量')->default(10);
             })->saving(function ($v) {
                 // 转化为json格式存储
                 return json_encode($v);

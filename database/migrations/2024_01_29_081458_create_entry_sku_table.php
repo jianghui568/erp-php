@@ -13,14 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('order_sku_log', function (Blueprint $table) {
+        Schema::create('entry_sku', function (Blueprint $table) {
             $table->id();
-            $table->integer('goods_id');
-            $table->integer('order_id');
-            $table->integer('admin_id');
-            $table->string('goods_sku');
-            $table->string('action');
-            $table->integer('action_sku_num');
+            $table->integer('entry_id')->comment('入库单id');
+            $table->string('sku')->default('')->comment('sku');
+            $table->integer('num')->default(0)->comment('数量');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -33,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('order_sku_log');
+        Schema::dropIfExists('entry_sku');
     }
 };
