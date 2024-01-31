@@ -9,3 +9,8 @@ php artisan db:seed
 php artisan iseed <tablenames>
 ```
 
+
+### 环境启动
+```
+docker-compose up
+```
