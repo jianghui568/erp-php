@@ -12,7 +12,8 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
-        "lty5240/dcat-easy-sku": "^1.1"
+        "lty5240/dcat-easy-sku": "^1.1",
+        "orangehill/iseed": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
