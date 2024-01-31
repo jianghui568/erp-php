@@ -12,5 +12,9 @@ php artisan iseed <tablenames>
 
 ### 环境启动
 ```
+1、启动docker
 docker-compose up
+2、进入php容器，执行一下命名
+php artisan migrage
+php artisan db:seed
 ```
